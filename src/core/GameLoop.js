@@ -37,7 +37,8 @@ export class GameLoop {
 
   tick(time) {
     if (!this.running || document.hidden) return;
-    const dt = this.previousTime ? Math.min((time - this.previousTime) / 1000, 0.1) : 0;
+    const frameDt = this.previousTime ? (time - this.previousTime) / 1000 : 0;
+    const dt = Math.min(frameDt, 0.1);
     this.previousTime = time;
     // Input is sampled once, then held stable across all fixed steps in this frame.
     this.beforeFrame?.(dt, this.paused);
@@ -48,7 +49,7 @@ export class GameLoop {
         this.accumulator -= this.step;
       }
     }
-    this.render(dt, this.paused ? 1 : this.accumulator / this.step, this.paused);
+    this.render(dt, this.paused ? 1 : this.accumulator / this.step, this.paused, frameDt);
     this.frameId = requestAnimationFrame(this.tick);
   }
 

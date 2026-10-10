@@ -189,7 +189,7 @@ async function bootstrap() {
       jumpPending = false;
       frameInput.jump = false;
     },
-    render(dt, alpha, paused) {
+    render(dt, alpha, paused, frameDt) {
       // The loading/start/menu view is static. Do not redraw it at display refresh
       // rate; keep a short settling window after pause, then render on invalidation.
       if (paused) {
@@ -207,7 +207,7 @@ async function bootstrap() {
       // A static preview stays genuinely paused; camera still settles smoothly.
       rig.update(dt, state.position, frameInput, settings.values);
       renderer.render(dt);
-      if (dt > 0) fps += (1 / dt - fps) * (1 - Math.exp(-dt * 2));
+      if (frameDt > 0) fps += (1 / frameDt - fps) * (1 - Math.exp(-frameDt * 2));
       hudTime += dt;
       if (hudTime > 0.12) {
         ui.update({

@@ -2,7 +2,7 @@
 
 A small robotic companion in a sunlit indoor playground. Wander through a furnished shelter, try the agility ramp, or settle into a quiet corner. There are no missions, scores, accounts, or downloaded model packs: the robot, room, signage, materials, and soundscape are built procedurally.
 
-**Project URL:** [alfiansm07.github.io/luma-robot-companion-club](https://alfiansm07.github.io/luma-robot-companion-club/) — deployment verification is in progress.
+**Play now:** [alfiansm07.github.io/luma-robot-companion-club](https://alfiansm07.github.io/luma-robot-companion-club/) — publicly deployed over HTTPS and verified with real movement, jump/landing, and audio.
 
 ![Luma exploring the original procedural shelter](public/assets/screenshots/gameplay.webp)
 
@@ -205,19 +205,24 @@ Runtime verification covered Edge 155, Firefox 157, WebKit 27.2, and Chromium 15
 
 Real Rapier smoke scenarios passed **25 movement/jump/wall/reset checks**. A **60,480-frame** camera matrix covering wall/corner/roof anchors, FOV 45/60/85 and portrait through 32:9 aspect ratios recorded zero near-plane violations (minimum tested gap 0.131 m). The actual shelter ramp was climbed and descended at walk and sprint with no airborne frames or stalls; minimum capsule-center height was 0.8079 m.
 
-| Measurement                |                                               Observed result | Scope                                                                                   |
-| -------------------------- | ------------------------------------------------------------: | --------------------------------------------------------------------------------------- |
-| Medium at native 1920×1080 |                                                 91.7 FPS mean | Edge 155, GTX 1060 6 GB, 220 sampled frames; not an iGPU result                         |
-| Frame time                 |                                   8.3 ms median / 25.1 ms p95 | Same short desktop sample, not a thermal endurance test                                 |
-| Full-frame draw calls      |                                                           198 | Scene + shadow + post-processing at sampled view                                        |
-| Compressed game assets     |                                            About 1.45 MB gzip | Aggregate build assets, excluding README screenshot                                     |
-| Local boot-to-ready        |                                               About 1.1–2.5 s | Observed browser runs; host/network dependent                                           |
-| Lighthouse desktop         | Performance 53, Accessibility 100, Best Practices 100, SEO 91 | Local production preview, simulated desktop throttling; cold preparation remains costly |
-| Lighthouse paint/blocking  |                           FCP 383 ms, LCP 3468 ms, TBT 715 ms | Same Lighthouse run; not gameplay FPS                                                   |
+| Measurement                      |                                                Observed result | Scope                                                                                 |
+| -------------------------------- | -------------------------------------------------------------: | ------------------------------------------------------------------------------------- |
+| Medium at native 1920×1080       |                                                  91.7 FPS mean | Edge 155, GTX 1060 6 GB, 220 sampled frames; not an iGPU result                       |
+| Frame time                       |                                    8.3 ms median / 25.1 ms p95 | Same short desktop sample, not a thermal endurance test                               |
+| Full-frame draw calls            |                                                        178–198 | Sampled views including scene, shadows and post-processing                            |
+| Compressed game assets           |                                             About 1.45 MB gzip | Aggregate build assets, excluding README screenshot                                   |
+| Local boot-to-ready              |                                                About 1.1–2.5 s | Observed browser runs; host/network dependent                                         |
+| Lighthouse public desktop        | Performance 65, Accessibility 100, Best Practices 100, SEO 100 | Public GitHub Pages URL; simulated desktop throttling                                 |
+| Lighthouse public paint/blocking |                            FCP 542 ms, LCP 1976 ms, TBT 537 ms | Same public audit; not gameplay FPS                                                   |
+| Low touchscreen emulation        |                                                        9.2 FPS | Chromium SwiftShader software renderer at390×844; not a mobile GPU, below30FPS target |
 
 The Lighthouse performance score is below a high-performance web-page target despite smooth gameplay. Procedural scene generation, WASM initialization and shader preparation are synchronous startup costs; code splitting, separate cacheable WASM, reduced quality tiers and idle-menu render invalidation mitigate them. No claim of meeting the specified iGPU/mobile FPS targets is made without those devices.
 
 **Verification limits:** physical Safari/macOS, iOS and Android, integrated GPUs, and broadband cold-load targets were not measured. Mobile results are emulation, not physical-device certification. Native tab switching was attempted in headless and headed automation, but those sessions kept `document.hidden=false`; therefore native background-pause behavior remains unverified. The visibility handler cancels RAF, clears accumulated time/input, and pauses audio, but this code behavior must still be checked on real target devices. Windows Playwright WebKit's absent AudioContext is not evidence of a Safari/iOS bug.
+
+Public deployment checks returned **HTTP200** for HTML, JavaScript and WASM, with `application/wasm` and gzip for the WASM binary (1,181,330 transferred bytes in the inspected response). Pages applies `Cache-Control: max-age=600`; it does not honor custom immutable-cache files. Observed public boot-to-ready was3.37s on this connection, not a broadband guarantee. Three repeated quality cycles stabilized at74 geometries/28 textures; this short resource-count check is not an exhaustive memory-leak proof.
+
+The real camera correction resolves initially overlapping follow anchors along Rapier contact normals before casting, including extreme FOV/aspect corners. Grounded locomotion relies on Rapier ground snap rather than an artificial downward push that caused native slope stalls. PMREM normal-incidence sampling is algebraically specialized in a guarded, pinned-version helper to avoid ANGLE constant-folding warnings; shadow depth filtering is explicit, and unsupported parallel shader compilation falls back to synchronous compilation.
 
 ### Manual acceptance checklist
 
